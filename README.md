@@ -69,3 +69,10 @@ If you need to reset the data to a clean state (keeping only the admin user), yo
 ```bash
 node scripts/reset-data.js
 ```
+
+
+##
+```Username & Password Default
+username   : admin
+password   : admin
+```
