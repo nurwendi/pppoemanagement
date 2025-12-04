@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Activity, RefreshCw, ArrowUpDown, Search, ExternalLink } from 'lucide-react';
+import { Activity, RefreshCw, ArrowUpDown, Search, ExternalLink, Power } from 'lucide-react';
 
 export default function ActiveConnectionsPage() {
     const [connections, setConnections] = useState([]);
@@ -56,6 +56,27 @@ export default function ActiveConnectionsPage() {
             setError(err.message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDisconnect = async (id, name) => {
+        if (!confirm(`Are you sure you want to disconnect user ${name}?`)) return;
+
+        try {
+            const res = await fetch(`/api/pppoe/active/${id}`, {
+                method: 'DELETE',
+            });
+
+            if (res.ok) {
+                // Refresh list
+                fetchConnections();
+            } else {
+                const data = await res.json();
+                alert(`Failed to disconnect: ${data.error}`);
+            }
+        } catch (error) {
+            console.error('Error disconnecting:', error);
+            alert('Failed to disconnect user');
         }
     };
 
@@ -203,12 +224,19 @@ export default function ActiveConnectionsPage() {
                                                     href={`http://${conn.address}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                                    className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mr-2"
                                                 >
                                                     <ExternalLink size={14} className="mr-1" />
-                                                    Manage Router
+                                                    Manage
                                                 </a>
                                             )}
+                                            <button
+                                                onClick={() => handleDisconnect(conn['.id'], conn.name)}
+                                                className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                            >
+                                                <Power size={14} className="mr-1" />
+                                                Disconnect
+                                            </button>
                                         </td>
                                     </tr>
                                 ))

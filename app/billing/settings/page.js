@@ -27,7 +27,7 @@ export default function BillingSettingsPage() {
             const res = await fetch('/api/billing/settings');
             if (res.ok) {
                 const data = await res.json();
-                setSettings(data);
+                setSettings(prev => ({ ...prev, ...data }));
             }
         } catch (error) {
             console.error('Failed to fetch settings', error);

@@ -69,3 +69,21 @@ If you need to reset the data to a clean state (keeping only the admin user), yo
 ```bash
 node scripts/reset-data.js
 ```
+
+## Scheduler & Timezone
+
+The application now includes a background scheduler (using `node-cron`) for:
+1.  **Daily Backups**: Runs at 00:00 (Midnight).
+2.  **Auto-Drop Unpaid Users**: Runs at 01:00 AM.
+
+**Important**: Ensure your server's timezone is set correctly (e.g., to Asia/Jakarta) so that these tasks run at the expected local time.
+
+Check server time:
+```bash
+date
+```
+
+Set timezone (Ubuntu):
+```bash
+sudo timedatectl set-timezone Asia/Jakarta
+```
