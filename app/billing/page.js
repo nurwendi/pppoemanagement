@@ -638,7 +638,7 @@ export default function BillingPage() {
                 </div>
 
                 {/* Partner Earnings Section */}
-                {agentStats && agentStats.role === 'admin' && agentStats.agents && agentStats.agents.length > 0 && (
+                {agentStats && agentStats.role === 'admin' && (
                     <div className="bg-white rounded-lg shadow-md glass-card overflow-hidden">
                         <div className="p-6 border-b border-gray-200">
                             <h2 className="text-lg font-semibold text-gray-800">Partner Earnings - {getMonthName(selectedMonth)} {selectedYear}</h2>
@@ -657,55 +657,65 @@ export default function BillingPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {agentStats.agents.map((agent) => (
-                                        <tr key={agent.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <div>
-                                                        <div className="text-sm font-medium text-gray-900">{agent.name}</div>
-                                                        <div className="text-xs text-gray-500">{agent.role}</div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {agent.rate}%
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                                    {agent.paidCount}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                                                    {agent.unpaidCount}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {formatCurrency(agent.totalRevenue)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
-                                                {formatCurrency(agent.commission)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
-                                                {formatCurrency(agent.totalRevenue - agent.commission)}
+                                    {(!agentStats.agents || agentStats.agents.length === 0) ? (
+                                        <tr>
+                                            <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
+                                                No partners with transactions this month
                                             </td>
                                         </tr>
-                                    ))}
-                                    {/* Total Row */}
-                                    <tr className="bg-gray-100 font-semibold">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" colSpan="4">
-                                            Total
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {formatCurrency(agentStats.grandTotal?.revenue || 0)}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
-                                            {formatCurrency(agentStats.grandTotal?.commission || 0)}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
-                                            {formatCurrency(agentStats.grandTotal?.netRevenue || 0)}
-                                        </td>
-                                    </tr>
+                                    ) : (
+                                        <>
+                                            {agentStats.agents.map((agent) => (
+                                                <tr key={agent.id} className="hover:bg-gray-50">
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="flex items-center">
+                                                            <div>
+                                                                <div className="text-sm font-medium text-gray-900">{agent.name}</div>
+                                                                <div className="text-xs text-gray-500">{agent.role}</div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        {agent.rate}%
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                                            {agent.paidCount}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                                            {agent.unpaidCount}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                        {formatCurrency(agent.totalRevenue)}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
+                                                        {formatCurrency(agent.commission)}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
+                                                        {formatCurrency(agent.totalRevenue - agent.commission)}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            {/* Total Row */}
+                                            <tr className="bg-gray-100 font-semibold">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" colSpan="4">
+                                                    Total
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {formatCurrency(agentStats.grandTotal?.revenue || 0)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
+                                                    {formatCurrency(agentStats.grandTotal?.commission || 0)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
+                                                    {formatCurrency(agentStats.grandTotal?.netRevenue || 0)}
+                                                </td>
+                                            </tr>
+                                        </>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
