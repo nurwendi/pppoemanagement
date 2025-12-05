@@ -76,58 +76,56 @@ export default function Sidebar() {
 
     return (
         <>
-            {/* Hamburger Menu Button - Mobile Only */}
-            {/* Hamburger Menu Button - Mobile Only */}
+            {/* Hamburger Menu Button - Mobile Only - Bottom Center */}
             {!isOpen && (
                 <button
                     onClick={toggleSidebar}
-                    className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800 text-white rounded-md hover:bg-gray-700"
+                    className="lg:hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 p-4 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300 hover:scale-110"
                 >
-                    <Menu size={24} />
+                    <Menu size={28} />
                 </button>
             )}
 
-            {/* Overlay for mobile */}
-            {isOpen && (
-                <div
-                    className="lg:hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-30"
-                    onClick={closeSidebar}
-                />
-            )}
-
-            {/* Sidebar */}
+            {/* Sidebar - Full Screen on Mobile with Bottom-Up Animation */}
             <div className={`
-                fixed top-0 left-0 h-screen w-64 bg-white dark:bg-gray-800 text-gray-800 dark:text-white p-4 z-40 transition-transform duration-300 ease-in-out border-r border-gray-200 dark:border-gray-700 overflow-y-auto
-                ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-                lg:translate-x-0
+                fixed h-screen bg-white dark:bg-gray-800 text-gray-800 dark:text-white p-4 z-40 overflow-y-auto
+                w-full lg:w-64
+                left-0 lg:top-0
+                lg:border-r lg:border-gray-200 lg:dark:border-gray-700
+                ${isOpen ? 'top-0' : 'top-full'}
+                lg:top-0 lg:translate-y-0
                 glass-mode:bg-white/80 glass-mode:dark:bg-gray-900/80 glass-mode:backdrop-blur-md glass-mode:border-r glass-mode:border-gray-200/50 glass-mode:dark:border-white/10
-            `}>
-                <div className="flex flex-col min-h-full">
-                    {/* Mobile Close Button */}
-                    <div className="lg:hidden flex justify-end mb-2">
-                        <button onClick={closeSidebar} className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white">
-                            <X size={24} />
-                        </button>
-                    </div>
+            `}
+                style={{ transition: 'top 0.4s cubic-bezier(0.4, 0, 0.2, 1)' }}>
+                <div className="flex flex-col min-h-full lg:items-start items-center">
                     {/* Logo Section */}
-                    <div className="mb-8 mt-2">
+                    <div className="mb-8 mt-2 lg:text-left text-center w-full lg:w-auto">
                         {appSettings.logoUrl ? (
-                            <img
-                                src={appSettings.logoUrl}
-                                alt="Logo"
-                                className="h-12 object-contain"
-                                onError={(e) => {
-                                    e.target.style.display = 'none';
-                                    e.target.nextSibling.style.display = 'flex';
-                                }}
-                            />
-                        ) : null}
-                        <h2 className={`text-2xl font-bold text-blue-600 dark:text-white ${appSettings.logoUrl ? 'hidden' : ''}`}>
-                            {appSettings.appName}
-                        </h2>
+                            <>
+                                {/* Logo - shown on both mobile and desktop */}
+                                <img
+                                    src={appSettings.logoUrl}
+                                    alt="Logo"
+                                    className="h-16 lg:h-12 object-contain lg:mx-0 mx-auto"
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                        e.target.nextElementSibling.style.display = 'block';
+                                    }}
+                                />
+                                {/* App Name - hidden on mobile when logo exists, shown on desktop */}
+                                <h2 className="hidden lg:block text-2xl font-bold text-blue-600 dark:text-white mt-2">
+                                    {appSettings.appName}
+                                </h2>
+                            </>
+                        ) : (
+                            /* No logo - show app name on both */
+                            <h2 className="text-2xl font-bold text-blue-600 dark:text-white">
+                                {appSettings.appName}
+                            </h2>
+                        )}
                     </div>
 
-                    <nav className="flex-1">
+                    <nav className="flex-1 w-full lg:w-auto">
                         {/* Top Nav Items (Dashboard, Billing) */}
                         {topNavItems.map((item) => (
                             <Link
@@ -216,11 +214,21 @@ export default function Sidebar() {
                             handleLogout();
                             closeSidebar();
                         }}
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-red-50 hover:text-red-600 dark:hover:bg-gray-700 dark:hover:text-white transition-colors mt-auto"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-red-50 hover:text-red-600 dark:hover:bg-gray-700 dark:hover:text-white transition-colors"
                     >
                         <LogOut size={20} />
                         <span>Logout</span>
                     </button>
+
+                    {/* Mobile Close Button - Bottom */}
+                    <div className="lg:hidden flex justify-center mt-6 mb-4 w-full">
+                        <button
+                            onClick={closeSidebar}
+                            className="p-4 text-white bg-red-500 hover:bg-red-600 rounded-full shadow-lg transition-all duration-300 hover:scale-110"
+                        >
+                            <X size={28} />
+                        </button>
+                    </div>
                 </div>
             </div>
         </>
