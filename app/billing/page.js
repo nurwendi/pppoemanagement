@@ -66,7 +66,13 @@ export default function BillingPage() {
 
             if (paymentsRes.ok) setPayments(await paymentsRes.json());
             if (statsRes.ok) setStats(await statsRes.json());
-            if (agentStatsRes.ok) setAgentStats(await agentStatsRes.json());
+            if (agentStatsRes.ok) {
+                const agentData = await agentStatsRes.json();
+                console.log('Agent Stats Response:', agentData);
+                setAgentStats(agentData);
+            } else {
+                console.log('Agent Stats Error:', agentStatsRes.status);
+            }
         } catch (error) {
             console.error('Failed to fetch billing data', error);
         } finally {
@@ -638,7 +644,7 @@ export default function BillingPage() {
                 </div>
 
                 {/* Partner Earnings Section */}
-                {agentStats && agentStats.role === 'admin' && (
+                {userRole === 'admin' && (
                     <div className="bg-white rounded-lg shadow-md glass-card overflow-hidden">
                         <div className="p-6 border-b border-gray-200">
                             <h2 className="text-lg font-semibold text-gray-800">Partner Earnings - {getMonthName(selectedMonth)} {selectedYear}</h2>
@@ -657,7 +663,7 @@ export default function BillingPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {(!agentStats.agents || agentStats.agents.length === 0) ? (
+                                    {(!agentStats || !agentStats.agents || agentStats.agents.length === 0) ? (
                                         <tr>
                                             <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
                                                 No partners with transactions this month
