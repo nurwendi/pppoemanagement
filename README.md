@@ -37,7 +37,14 @@ A comprehensive PPPoE billing and user management system for MikroTik routers.
 ### Quick Install (One Command)
 
 ```bash
+cd /root
 curl -fsSL https://raw.githubusercontent.com/nurwendi/mikrotikbilling/main/scripts/install.sh | bash
+```
+
+### Quick Uninstall
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/nurwendi/mikrotikbilling/main/scripts/uninstall.sh | bash
 ```
 
 ### Manual Installation
