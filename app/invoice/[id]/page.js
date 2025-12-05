@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import PrintButton from '@/components/PrintButton';
 import CompanyLogo from '@/components/CompanyLogo';
@@ -15,6 +16,14 @@ async function readJsonFile(filename) {
     }
 }
 
+// Helper to get base URL from request headers
+async function getBaseUrl() {
+    const headersList = await headers();
+    const host = headersList.get('host') || 'localhost:3000';
+    const protocol = headersList.get('x-forwarded-proto') || 'http';
+    return `${protocol}://${host}`;
+}
+
 export default async function InvoicePage({ params }) {
     const { id } = await params;
     const payments = await readJsonFile('payments.json');
@@ -27,6 +36,14 @@ export default async function InvoicePage({ params }) {
     const customers = await readJsonFile('customer-data.json');
     const settings = await readJsonFile('billing-settings.json');
     const customer = customers[payment.username] || {};
+
+    // Get base URL for absolute logo path
+    const baseUrl = await getBaseUrl();
+
+    // Convert relative logo URL to absolute URL
+    const absoluteLogoUrl = settings.logoUrl
+        ? (settings.logoUrl.startsWith('http') ? settings.logoUrl : `${baseUrl}${settings.logoUrl}`)
+        : null;
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount);
@@ -55,9 +72,9 @@ export default async function InvoicePage({ params }) {
                             <p className="text-gray-500">#{payment.id}</p>
                         </div>
                         <div className="text-right">
-                            {settings.logoUrl && (
+                            {absoluteLogoUrl && (
                                 <div className="flex justify-end mb-3">
-                                    <CompanyLogo src={settings.logoUrl} alt="Company Logo" />
+                                    <CompanyLogo src={absoluteLogoUrl} alt="Company Logo" />
                                 </div>
                             )}
                             <h2 className="font-bold text-xl text-gray-800">{settings.companyName || 'Mikrotik Manager'}</h2>
