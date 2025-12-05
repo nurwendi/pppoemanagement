@@ -3,13 +3,26 @@ import { getMikrotikClient } from '@/lib/mikrotik';
 
 export async function PUT(request, { params }) {
     try {
-        const client = await getMikrotikClient();
         const { id } = await params;
         const body = await request.json();
         const { name, password, profile, service, comment } = body;
 
+        console.log(`PUT /api/pppoe/users/${id} - Starting update`);
+
         if (!id) {
             return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+        }
+
+        let client;
+        try {
+            client = await getMikrotikClient();
+        } catch (connError) {
+            console.error('Connection error:', connError);
+            // Handle timeout or connection errors
+            if (connError.errno === 'SOCKTMOUT' || connError.message?.includes('Timed out')) {
+                return NextResponse.json({ error: "Connection to router timed out. Please try again." }, { status: 503 });
+            }
+            return NextResponse.json({ error: "Failed to connect to router: " + connError.message }, { status: 503 });
         }
 
         const updateParams = [`=.id=${id}`];
@@ -19,9 +32,9 @@ export async function PUT(request, { params }) {
         if (service) updateParams.push(`=service=${service}`);
         if (comment !== undefined) updateParams.push(`=comment=${comment || ''}`);
 
-        console.log(`PUT /api/pppoe/users/${id} - Updating user`);
+        console.log('Update params:', updateParams);
 
-        // Perform the update with error handling for empty replies
+        // Perform the update with error handling for empty replies and timeouts
         try {
             await client.write('/ppp/secret/set', updateParams);
             console.log('User update completed successfully');
@@ -29,6 +42,8 @@ export async function PUT(request, { params }) {
             // Handle !empty reply - this is normal for set operations
             if (updateError.errno === 'UNKNOWNREPLY' || updateError.message?.includes('!empty')) {
                 console.log('User update completed (empty reply is normal)');
+            } else if (updateError.errno === 'SOCKTMOUT' || updateError.message?.includes('Timed out')) {
+                return NextResponse.json({ error: "Router connection timed out during update. Please try again." }, { status: 503 });
             } else {
                 throw updateError;
             }
@@ -45,8 +60,8 @@ export async function PUT(request, { params }) {
                             try {
                                 await client.write('/ppp/active/remove', [`=.id=${conn['.id']}`]);
                             } catch (removeError) {
-                                // Ignore empty reply errors
-                                if (removeError.errno !== 'UNKNOWNREPLY') {
+                                // Ignore empty reply and timeout errors
+                                if (removeError.errno !== 'UNKNOWNREPLY' && removeError.errno !== 'SOCKTMOUT') {
                                     console.log(`Remove session warning: ${removeError.message}`);
                                 }
                             }

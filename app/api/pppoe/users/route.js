@@ -156,9 +156,16 @@ export async function POST(request) {
                 const command = [
                     `=name=${name}`,
                     `=password=${password}`,
-                    `=profile=${profile || ''}`,
-                    `=service=${service}`,
                 ];
+
+                if (profile) {
+                    command.push(`=profile=${profile}`);
+                }
+
+                // Only add service if it's specified and not empty
+                if (service && service !== 'any') {
+                    command.push(`=service=${service}`);
+                }
 
                 if (comment) {
                     command.push(`=comment=${comment}`);

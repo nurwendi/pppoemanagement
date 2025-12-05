@@ -55,7 +55,7 @@ export async function GET() {
 
         // If temperature is available, add to history (every 5 minutes)
         if (temperature !== null) {
-            const history = getTemperatureHistory();
+            let history = getTemperatureHistory();
             const SAMPLE_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
 
             // Check if we should add a new data point (5 minutes since last one)
@@ -71,14 +71,14 @@ export async function GET() {
 
                 // Prune old data (keep only last 3 days)
                 const cutoff = Date.now() - (MAX_HISTORY_DAYS * 24 * 60 * 60 * 1000);
-                const trimmedHistory = history.filter(entry => entry.timestamp > cutoff);
-                saveTemperatureHistory(trimmedHistory);
+                history = history.filter(entry => entry.timestamp > cutoff);
+                saveTemperatureHistory(history);
             }
 
             return NextResponse.json({
                 current: temperature,
                 sensorName,
-                history: trimmedHistory.map(h => ({
+                history: history.map(h => ({
                     time: new Date(h.timestamp).toLocaleString('id-ID', {
                         day: '2-digit',
                         month: '2-digit',
