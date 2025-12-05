@@ -164,8 +164,18 @@ export async function POST(request) {
                     command.push(`=comment=${comment}`);
                 }
 
-                await client.write('/ppp/secret/add', command);
-                results.push({ routerId, success: true });
+                try {
+                    await client.write('/ppp/secret/add', command);
+                    results.push({ routerId, success: true });
+                } catch (addError) {
+                    // Handle !empty reply - this can be normal for add operations
+                    if (addError.errno === 'UNKNOWNREPLY' || addError.message?.includes('!empty')) {
+                        console.log('User add completed (empty reply is normal)');
+                        results.push({ routerId, success: true });
+                    } else {
+                        throw addError;
+                    }
+                }
             } catch (err) {
                 console.error(`Failed to add user to router ${routerId}:`, err);
                 errors.push({ routerId, error: err.message });
