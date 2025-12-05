@@ -1,8 +1,7 @@
 {
-  "companyName": "Buroq Sarana Informatika",
-  "companyAddress": "",
-  "companyContact": "",
-  "invoiceFooter": "",
-  "logoUrl": "/uploads/logo-1764817445306.png",
-  "autoDropDate": 28
+  "invoicePrefix": "INV",
+  "defaultDueDate": 25,
+  "currency": "Rp",
+  "autoDropEnabled": false,
+  "autoDropGracePeriod": 3
 }

@@ -33,6 +33,8 @@ export default function DashboardPage() {
         uploadBytes: 0
     });
     const [speedHistory, setSpeedHistory] = useState([]);
+    const [temperatureHistory, setTemperatureHistory] = useState([]);
+    const [cpuHistory, setCpuHistory] = useState([]);
     const [userRole, setUserRole] = useState(null);
     const [loading, setLoading] = useState(true);
     const [lastUpdate, setLastUpdate] = useState(new Date());
@@ -66,12 +68,14 @@ export default function DashboardPage() {
 
     const fetchStats = async () => {
         try {
-            const [dashboardRes, billingRes, agentStatsRes, trafficRes, realtimeRes] = await Promise.all([
+            const [dashboardRes, billingRes, agentStatsRes, trafficRes, realtimeRes, tempRes, cpuRes] = await Promise.all([
                 fetch('/api/dashboard/stats'),
                 fetch('/api/billing/stats'),
                 fetch(`/api/billing/stats/agent?month=${new Date().getMonth()}&year=${new Date().getFullYear()}`),
                 fetch('/api/traffic'),
-                fetch('/api/traffic/realtime')
+                fetch('/api/traffic/realtime'),
+                fetch('/api/dashboard/temperature'),
+                fetch('/api/dashboard/cpu')
             ]);
 
             const newStats = { ...stats };
@@ -149,6 +153,22 @@ export default function DashboardPage() {
                     // Keep only last 60 data points
                     return newHistory.slice(-60);
                 });
+            }
+
+            // Handle temperature history
+            if (tempRes.ok) {
+                const data = await tempRes.json();
+                if (data.history && data.history.length > 0) {
+                    setTemperatureHistory(data.history);
+                }
+            }
+
+            // Handle CPU history
+            if (cpuRes.ok) {
+                const data = await cpuRes.json();
+                if (data.history && data.history.length > 0) {
+                    setCpuHistory(data.history);
+                }
             }
 
             setStats(newStats);
@@ -372,6 +392,112 @@ export default function DashboardPage() {
                     />
                 </div>
             </div>
+
+            {/* Temperature Graph */}
+            {temperatureHistory.length > 1 && (
+                <div className="bg-white rounded-lg shadow-md p-6 glass-card">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
+                        <Thermometer className="text-orange-500" /> Temperature Monitor (Last 3 Days)
+                    </h2>
+                    <div className="h-[300px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={temperatureHistory} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="colorTemp" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#F97316" stopOpacity={0.8} />
+                                        <stop offset="95%" stopColor="#F97316" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <XAxis
+                                    dataKey="time"
+                                    tick={{ fontSize: 10 }}
+                                    minTickGap={60}
+                                />
+                                <YAxis
+                                    domain={['dataMin - 5', 'dataMax + 5']}
+                                    tickFormatter={(val) => `${val}°C`}
+                                    tick={{ fontSize: 12 }}
+                                />
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <Tooltip
+                                    formatter={(value) => [`${value}°C`, 'Temperature']}
+                                    labelFormatter={(label, payload) => {
+                                        if (payload && payload[0] && payload[0].payload.date) {
+                                            return payload[0].payload.date;
+                                        }
+                                        return label;
+                                    }}
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="temperature"
+                                    name="Temperature"
+                                    stroke="#F97316"
+                                    strokeWidth={2}
+                                    fillOpacity={1}
+                                    fill="url(#colorTemp)"
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-4 text-center">
+                        {temperatureHistory.length} data points collected
+                    </p>
+                </div>
+            )}
+
+            {/* CPU Usage Graph */}
+            {cpuHistory.length > 1 && (
+                <div className="bg-white rounded-lg shadow-md p-6 glass-card">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
+                        <Cpu className="text-blue-500" /> CPU Usage Monitor (Last 3 Days)
+                    </h2>
+                    <div className="h-[300px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={cpuHistory} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="colorCpu" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
+                                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <XAxis
+                                    dataKey="time"
+                                    tick={{ fontSize: 10 }}
+                                    minTickGap={60}
+                                />
+                                <YAxis
+                                    domain={[0, 100]}
+                                    tickFormatter={(val) => `${val}%`}
+                                    tick={{ fontSize: 12 }}
+                                />
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <Tooltip
+                                    formatter={(value) => [`${value}%`, 'CPU Load']}
+                                    labelFormatter={(label, payload) => {
+                                        if (payload && payload[0] && payload[0].payload.date) {
+                                            return payload[0].payload.date;
+                                        }
+                                        return label;
+                                    }}
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="cpuLoad"
+                                    name="CPU Load"
+                                    stroke="#3B82F6"
+                                    strokeWidth={2}
+                                    fillOpacity={1}
+                                    fill="url(#colorCpu)"
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-4 text-center">
+                        {cpuHistory.length} data points collected
+                    </p>
+                </div>
+            )}
 
             {/* 7-Day Traffic Speed Graph */}
             {trafficData.length > 1 && (

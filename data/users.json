@@ -1,10 +1,10 @@
-[
-  {
-    "id": "1763908195511",
-    "username": "admin",
-    "passwordHash": "$2b$10$fLx98oD5hIqMeKpya0IOPe2UPTdOcoytK97RXnUts0XbSb.iiMqIq",
-    "role": "admin",
-    "createdAt": "2025-11-23T14:29:55.511Z",
-    "fullName": "Administrator"
-  }
-]
+{
+  "users": [
+    {
+      "id": "1",
+      "username": "admin",
+      "password": "$2a$10$rYjQQwPMBj3e7LHqGvX3.eGsKJ.9pBkMlSEwF8YO9X9yDo2cZP4je",
+      "role": "admin"
+    }
+  ]
+}

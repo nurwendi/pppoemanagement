@@ -5,12 +5,25 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
-import { getConfig } from '@/lib/config';
+import fs from 'fs';
+import path from 'path';
 
 export async function generateMetadata() {
-    const config = getConfig();
+    try {
+        const settingsPath = path.join(process.cwd(), 'app-settings.json');
+        if (fs.existsSync(settingsPath)) {
+            const data = fs.readFileSync(settingsPath, 'utf8');
+            const settings = JSON.parse(data);
+            return {
+                title: settings.appName || 'Mikrotik PPPoE Manager',
+                description: 'Manage PPPoE users and profiles',
+            };
+        }
+    } catch (error) {
+        console.error('Error reading app settings:', error);
+    }
     return {
-        title: config.title || 'Mikrotik PPPoE Manager',
+        title: 'Mikrotik PPPoE Manager',
         description: 'Manage PPPoE users and profiles',
     };
 }
