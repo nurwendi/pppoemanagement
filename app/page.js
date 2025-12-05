@@ -26,6 +26,13 @@ export default function DashboardPage() {
         agentStats: null // New field for agent stats
     });
     const [trafficData, setTrafficData] = useState([]);
+    const [realtimeTraffic, setRealtimeTraffic] = useState({
+        downloadRate: 0,
+        uploadRate: 0,
+        downloadBytes: 0,
+        uploadBytes: 0
+    });
+    const [speedHistory, setSpeedHistory] = useState([]);
     const [userRole, setUserRole] = useState(null);
     const [loading, setLoading] = useState(true);
     const [lastUpdate, setLastUpdate] = useState(new Date());
@@ -59,37 +66,44 @@ export default function DashboardPage() {
 
     const fetchStats = async () => {
         try {
-            const [dashboardRes, billingRes, agentStatsRes, trafficRes] = await Promise.all([
+            const [dashboardRes, billingRes, agentStatsRes, trafficRes, realtimeRes] = await Promise.all([
                 fetch('/api/dashboard/stats'),
                 fetch('/api/billing/stats'),
                 fetch(`/api/billing/stats/agent?month=${new Date().getMonth()}&year=${new Date().getFullYear()}`),
-                fetch('/api/traffic')
+                fetch('/api/traffic'),
+                fetch('/api/traffic/realtime')
             ]);
 
             const newStats = { ...stats };
 
             if (trafficRes.ok) {
                 const data = await trafficRes.json();
-                // Process data for chart
-                // Data is cumulative bytes. We want to show usage over time.
-                // Or if it's just history of cumulative bytes, the line will always go up (until reset).
-                // User asked for "penggunaan traffik" (traffic usage).
-                // If we show cumulative, it shows total consumption.
-                // Let's format it nicely.
-                // Actually, if we want to show "speed" or "usage per interval", we need to calculate diff.
-                // But for "Last 7 Days", showing the cumulative growth or daily usage is good.
-                // Let's just show the raw cumulative data for now, or maybe calculate diff if possible.
-                // Given the data structure [{timestamp, rx, tx}], we can show the trend.
+                // Calculate speed from cumulative bytes difference
+                // Data is sorted by timestamp, so we calculate (current - previous) / time_diff
+                const processedData = [];
+                for (let i = 1; i < data.length; i++) {
+                    const prev = data[i - 1];
+                    const curr = data[i];
+                    const timeDiffSeconds = (curr.timestamp - prev.timestamp) / 1000;
 
-                // Let's format timestamp to readable date
-                const formattedData = data.map(item => ({
-                    ...item,
-                    date: new Date(item.timestamp).toLocaleString(),
-                    // Convert to GB for better readability if large
-                    rxGB: parseFloat((item.rx / (1024 * 1024 * 1024)).toFixed(2)),
-                    txGB: parseFloat((item.tx / (1024 * 1024 * 1024)).toFixed(2))
-                }));
-                setTrafficData(formattedData);
+                    if (timeDiffSeconds > 0) {
+                        // rx on WAN = download, tx on WAN = upload
+                        const downloadBytesPerSec = (curr.rx - prev.rx) / timeDiffSeconds;
+                        const uploadBytesPerSec = (curr.tx - prev.tx) / timeDiffSeconds;
+
+                        // Convert to Mbps (bytes to bits, then to Mbps)
+                        const downloadMbps = Math.max(0, (downloadBytesPerSec * 8) / 1000000);
+                        const uploadMbps = Math.max(0, (uploadBytesPerSec * 8) / 1000000);
+
+                        processedData.push({
+                            timestamp: curr.timestamp,
+                            date: new Date(curr.timestamp).toLocaleString(),
+                            download: parseFloat(downloadMbps.toFixed(2)),
+                            upload: parseFloat(uploadMbps.toFixed(2))
+                        });
+                    }
+                }
+                setTrafficData(processedData);
             }
 
             if (dashboardRes.ok) {
@@ -115,7 +129,27 @@ export default function DashboardPage() {
                 }
             }
 
+            if (realtimeRes.ok) {
+                const data = await realtimeRes.json();
+                const newRealtimeData = {
+                    downloadRate: data.downloadRate || 0,
+                    uploadRate: data.uploadRate || 0,
+                    downloadBytes: data.downloadBytes || 0,
+                    uploadBytes: data.uploadBytes || 0
+                };
+                setRealtimeTraffic(newRealtimeData);
 
+                // Add to speed history for graph (keep last 60 data points)
+                setSpeedHistory(prev => {
+                    const newHistory = [...prev, {
+                        time: new Date().toLocaleTimeString(),
+                        download: Math.round((newRealtimeData.downloadRate / 1000000) * 100) / 100, // Convert to Mbps
+                        upload: Math.round((newRealtimeData.uploadRate / 1000000) * 100) / 100
+                    }];
+                    // Keep only last 60 data points
+                    return newHistory.slice(-60);
+                });
+            }
 
             setStats(newStats);
             setLastUpdate(new Date());
@@ -137,6 +171,14 @@ export default function DashboardPage() {
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount);
+    };
+
+    const formatBitsPerSecond = (bps) => {
+        if (!bps || bps === 0) return '0 bps';
+        const k = 1000;
+        const sizes = ['bps', 'Kbps', 'Mbps', 'Gbps'];
+        const i = Math.floor(Math.log(bps) / Math.log(k));
+        return parseFloat((bps / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
     const StatCard = ({ icon: Icon, title, value, subtitle, color = 'blue', alert = false }) => (
@@ -245,6 +287,62 @@ export default function DashboardPage() {
                 </div>
             </div>
 
+            {/* Real-time Internet Traffic */}
+            <div>
+                <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <Activity className="text-purple-600" /> Real-time Internet Traffic
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-md p-6 text-white"
+                    >
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-green-100 text-sm">Download Speed</span>
+                            <ArrowDown size={20} />
+                        </div>
+                        <p className="text-3xl font-bold">{formatBitsPerSecond(realtimeTraffic.downloadRate)}</p>
+                    </motion.div>
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md p-6 text-white"
+                    >
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-blue-100 text-sm">Upload Speed</span>
+                            <ArrowUp size={20} />
+                        </div>
+                        <p className="text-3xl font-bold">{formatBitsPerSecond(realtimeTraffic.uploadRate)}</p>
+                    </motion.div>
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg shadow-md p-6 text-white"
+                    >
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-emerald-100 text-sm">Total Download</span>
+                            <ArrowDown size={20} />
+                        </div>
+                        <p className="text-3xl font-bold">{formatBytes(realtimeTraffic.downloadBytes)}</p>
+                    </motion.div>
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg shadow-md p-6 text-white"
+                    >
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-indigo-100 text-sm">Total Upload</span>
+                            <ArrowUp size={20} />
+                        </div>
+                        <p className="text-3xl font-bold">{formatBytes(realtimeTraffic.uploadBytes)}</p>
+                    </motion.div>
+                </div>
+            </div>
+
             {/* System Stats */}
             <div>
                 <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -275,21 +373,21 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* Internet Traffic Chart */}
-            {trafficData.length > 0 && (
+            {/* 7-Day Traffic Speed Graph */}
+            {trafficData.length > 1 && (
                 <div className="bg-white rounded-lg shadow-md p-6">
                     <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
-                        <Activity className="text-blue-600" /> Internet Traffic (Last 7 Days)
+                        <Activity className="text-blue-600" /> Internet Traffic Speed (Last 7 Days)
                     </h2>
                     <div className="h-[400px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={trafficData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                 <defs>
-                                    <linearGradient id="colorTx" x1="0" y1="0" x2="0" y2="1">
+                                    <linearGradient id="colorDownload7d" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#10B981" stopOpacity={0.8} />
                                         <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                                     </linearGradient>
-                                    <linearGradient id="colorRx" x1="0" y1="0" x2="0" y2="1">
+                                    <linearGradient id="colorUpload7d" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
                                         <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
                                     </linearGradient>
@@ -298,32 +396,36 @@ export default function DashboardPage() {
                                     dataKey="date"
                                     tickFormatter={(str) => {
                                         const date = new Date(str);
-                                        return `${date.getDate()}/${date.getMonth() + 1} ${date.getHours()}:${date.getMinutes()}`;
+                                        return `${date.getDate()}/${date.getMonth() + 1} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
                                     }}
-                                    minTickGap={50}
+                                    tick={{ fontSize: 11 }}
+                                    minTickGap={60}
                                 />
-                                <YAxis tickFormatter={(val) => `${val} GB`} />
+                                <YAxis
+                                    tickFormatter={(val) => `${val} Mbps`}
+                                    tick={{ fontSize: 12 }}
+                                />
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <Tooltip
+                                    formatter={(value, name) => [`${value} Mbps`, name === 'download' ? 'Download' : 'Upload']}
                                     labelFormatter={(label) => new Date(label).toLocaleString()}
-                                    formatter={(value, name) => [`${value} GB`, name === 'txGB' ? 'Download' : 'Upload']}
                                 />
                                 <Legend />
                                 <Area
                                     type="monotone"
-                                    dataKey="txGB"
+                                    dataKey="download"
                                     name="Download"
                                     stroke="#10B981"
                                     fillOpacity={1}
-                                    fill="url(#colorTx)"
+                                    fill="url(#colorDownload7d)"
                                 />
                                 <Area
                                     type="monotone"
-                                    dataKey="rxGB"
+                                    dataKey="upload"
                                     name="Upload"
                                     stroke="#3B82F6"
                                     fillOpacity={1}
-                                    fill="url(#colorRx)"
+                                    fill="url(#colorUpload7d)"
                                 />
                             </AreaChart>
                         </ResponsiveContainer>
