@@ -35,12 +35,14 @@ export async function GET(request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Filter payments by date if provided
+        // Filter payments by date if provided (using Asia/Jakarta timezone)
         let filteredPayments = paymentsData;
         if (month && year) {
             filteredPayments = paymentsData.filter(p => {
-                const d = new Date(p.date);
-                return d.getMonth() === parseInt(month) && d.getFullYear() === parseInt(year);
+                // Convert payment date to Jakarta timezone
+                const paymentDate = new Date(p.date);
+                const jakartaDate = new Date(paymentDate.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+                return jakartaDate.getMonth() === parseInt(month) && jakartaDate.getFullYear() === parseInt(year);
             });
         }
 
@@ -48,6 +50,12 @@ export async function GET(request) {
         const getCustomer = (username) => customersData[username];
         // Helper to get user data
         const getUser = (userId) => usersData.find(u => u.id === userId);
+
+        // Debug logging
+        console.log('=== Agent Stats Debug ===');
+        console.log('Filtered Payments Count:', filteredPayments.length);
+        console.log('Customers Data Keys:', Object.keys(customersData));
+        console.log('Users Data:', usersData.map(u => ({ id: u.id, role: u.role, agentRate: u.agentRate })));
 
         // Calculate Stats
         if (currentUser.role === 'admin') {

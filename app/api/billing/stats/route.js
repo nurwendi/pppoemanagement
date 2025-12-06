@@ -20,15 +20,30 @@ export async function GET() {
         .filter(p => p.status === 'completed')
         .reduce((sum, p) => sum + Number(p.amount), 0);
 
-    const today = new Date().toISOString().split('T')[0];
-    const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+    // Use Asia/Jakarta timezone for date calculations
+    const now = new Date();
+    const jakartaNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+    const today = jakartaNow.toISOString().split('T')[0];
+    const currentMonth = jakartaNow.toISOString().slice(0, 7); // YYYY-MM
 
     const todaysRevenue = payments
-        .filter(p => p.status === 'completed' && p.date.startsWith(today))
+        .filter(p => {
+            if (p.status !== 'completed') return false;
+            const paymentDate = new Date(p.date);
+            const jakartaPaymentDate = new Date(paymentDate.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+            const paymentDay = jakartaPaymentDate.toISOString().split('T')[0];
+            return paymentDay === today;
+        })
         .reduce((sum, p) => sum + Number(p.amount), 0);
 
     const thisMonthRevenue = payments
-        .filter(p => p.status === 'completed' && p.date.startsWith(currentMonth))
+        .filter(p => {
+            if (p.status !== 'completed') return false;
+            const paymentDate = new Date(p.date);
+            const jakartaPaymentDate = new Date(paymentDate.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+            const paymentMonth = jakartaPaymentDate.toISOString().slice(0, 7);
+            return paymentMonth === currentMonth;
+        })
         .reduce((sum, p) => sum + Number(p.amount), 0);
 
     const pendingCount = payments.filter(p => p.status === 'pending').length;
