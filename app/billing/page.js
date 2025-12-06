@@ -387,27 +387,25 @@ export default function BillingPage() {
         const amount = formatCurrency(payment.amount);
         const companyName = invoiceSettings.companyName || 'ISP';
 
-        // Thermal printer style receipt
-        const message = `================================
-      *${companyName.toUpperCase()}*
+        // Thermal printer style receipt (Simple Text)
+        const message = `*INVOICE PEMBAYARAN*
+${companyName.toUpperCase()}
 ================================
 No. Invoice : ${payment.id?.slice(0, 8) || '-'}
 Tanggal     : ${tanggal}
---------------------------------
 Pelanggan   : ${customer.name}
-No. Plgn    : ${customer.customerNumber || payment.username}
 Periode     : ${periode}
 --------------------------------
-*JUMLAH BAYAR: ${amount}*
---------------------------------
-Status      : ✅ LUNAS
+*JUMLAH     : ${amount}*
+Status      : LUNAS
 ================================
-      Terima Kasih
-================================
+Terima Kasih
 
-📄 Invoice: ${invoiceLink}`;
+Link Invoice PDF:
+${invoiceLink}`;
 
-        window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`, '_blank');
+        // Use api.whatsapp.com which is more robust than wa.me
+        window.open(`https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`, '_blank');
     };
 
     return (
@@ -1132,9 +1130,9 @@ Status      : ✅ LUNAS
                             <div className="flex justify-end gap-3 print:hidden p-6 pt-0">
                                 <button
                                     onClick={() => setShowInvoiceModal(false)}
-                                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
                                 >
-                                    Tutup
+                                    <X size={18} /> Tutup
                                 </button>
                                 <button
                                     onClick={() => window.print()}
