@@ -569,53 +569,55 @@ ${invoiceLink}`;
                     </div>
                 )}
 
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div className="bg-white rounded-lg p-6 shadow-md glass-card border-l-4 border-green-500">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-green-100 rounded-full text-green-600">
-                                <DollarSign size={24} />
+                {/* Stats Cards - Admin Only */}
+                {userRole === 'admin' && (
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div className="bg-white rounded-lg p-6 shadow-md glass-card border-l-4 border-green-500">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-green-100 rounded-full text-green-600">
+                                    <DollarSign size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500">Revenue (This Month)</p>
+                                    <p className="text-xl font-bold text-gray-900">{formatCurrency(getMonthStats().totalRevenue)}</p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-sm text-gray-500">Revenue (This Month)</p>
-                                <p className="text-xl font-bold text-gray-900">{formatCurrency(getMonthStats().totalRevenue)}</p>
+                        </div>
+                        <div className="bg-white rounded-lg p-6 shadow-md glass-card border-l-4 border-blue-500">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-blue-100 rounded-full text-blue-600">
+                                    <Calendar size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500">Pending Invoices</p>
+                                    <p className="text-xl font-bold text-gray-900">{getMonthStats().pendingCount}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-lg p-6 shadow-md glass-card border-l-4 border-purple-500">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-purple-100 rounded-full text-purple-600">
+                                    <FileText size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500">Transactions</p>
+                                    <p className="text-xl font-bold text-gray-900">{getMonthStats().totalTransactions}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-lg p-6 shadow-md glass-card border-l-4 border-red-500">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-red-100 rounded-full text-red-600">
+                                    <CreditCard size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500">Total Unpaid</p>
+                                    <p className="text-xl font-bold text-gray-900">{formatCurrency(getMonthStats().totalUnpaid)}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white rounded-lg p-6 shadow-md glass-card border-l-4 border-blue-500">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-blue-100 rounded-full text-blue-600">
-                                <Calendar size={24} />
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500">Pending Invoices</p>
-                                <p className="text-xl font-bold text-gray-900">{getMonthStats().pendingCount}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-white rounded-lg p-6 shadow-md glass-card border-l-4 border-purple-500">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-purple-100 rounded-full text-purple-600">
-                                <FileText size={24} />
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500">Transactions</p>
-                                <p className="text-xl font-bold text-gray-900">{getMonthStats().totalTransactions}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-white rounded-lg p-6 shadow-md glass-card border-l-4 border-red-500">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-red-100 rounded-full text-red-600">
-                                <CreditCard size={24} />
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500">Total Unpaid</p>
-                                <p className="text-xl font-bold text-gray-900">{formatCurrency(getMonthStats().totalUnpaid)}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                )}
 
                 {/* Partner Earnings Section */}
                 {userRole === 'admin' && (

@@ -36,24 +36,28 @@ export async function GET(request) {
     let payments = await getPayments();
 
     // Filter based on role
-    const user = getUserFromRequest(request);
-    if (user) {
+    const user = await getUserFromRequest(request);
+    if (user && user.role !== 'admin') {
         try {
-            if (user.role === 'agent' || user.role === 'technician' || user.role === 'partner') {
-                // Load customers to check assignment
-                const data = await fs.readFile(customerFile, 'utf8');
-                const customers = JSON.parse(data);
+            // Load customers to check assignment
+            const data = await fs.readFile(customerFile, 'utf8');
+            const customers = JSON.parse(data);
 
-                const allowedUsernames = new Set();
-                for (const [key, val] of Object.entries(customers)) {
-                    if (user.isAgent && val.agentId === user.id) allowedUsernames.add(key);
-                    if (user.isTechnician && val.technicianId === user.id) allowedUsernames.add(key);
+            const allowedUsernames = new Set();
+            for (const [key, val] of Object.entries(customers)) {
+                // Check if user is the assigned agent/partner
+                if ((user.role === 'agent' || user.role === 'partner') && val.agentId === user.id) {
+                    allowedUsernames.add(key);
                 }
-
-                payments = payments.filter(p => allowedUsernames.has(p.username));
+                // Check if user is the assigned technician
+                if (user.role === 'technician' && val.technicianId === user.id) {
+                    allowedUsernames.add(key);
+                }
             }
+
+            payments = payments.filter(p => allowedUsernames.has(p.username));
         } catch (e) {
-            // Ignore token parse error
+            console.error('Error filtering payments:', e);
         }
     }
 
