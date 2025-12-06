@@ -13,11 +13,14 @@ export async function GET(request) {
         const year = searchParams.get('year');
 
         // Load data
-        const [paymentsData, customersData, usersData] = await Promise.all([
+        const [paymentsData, customersData, usersDataRaw] = await Promise.all([
             fs.readFile(PAYMENTS_FILE, 'utf8').then(JSON.parse).catch(() => []),
             fs.readFile(CUSTOMERS_FILE, 'utf8').then(JSON.parse).catch(() => ({})),
-            fs.readFile(USERS_FILE, 'utf8').then(JSON.parse).catch(() => [])
+            fs.readFile(USERS_FILE, 'utf8').then(JSON.parse).catch(() => ({ users: [] }))
         ]);
+
+        // Handle users data format (could be { users: [...] } or direct [...])
+        const usersData = Array.isArray(usersDataRaw) ? usersDataRaw : (usersDataRaw.users || []);
 
         // Get current user from cookie (mocking auth check for now, ideally use a helper)
         const authToken = request.cookies.get('auth_token');
