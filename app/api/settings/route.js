@@ -11,18 +11,21 @@ export async function GET() {
         password: conn.password ? '******' : ''
     }));
 
+    const emailConfig = config.email ? { ...config.email, password: config.email.password ? '******' : '' } : {};
+
     return NextResponse.json({
         connections: safeConnections,
         activeConnectionId: config.activeConnectionId,
         title: config.title || 'Mikrotik PPPoE Manager',
-        wanInterface: config.wanInterface || ''
+        wanInterface: config.wanInterface || '',
+        email: emailConfig
     });
 }
 
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { connections, activeConnectionId, title, wanInterface } = body;
+        const { connections, activeConnectionId, title, wanInterface, email } = body;
 
         if (!connections || !Array.isArray(connections)) {
             return NextResponse.json({ error: "Connections array is required" }, { status: 400 });
@@ -37,21 +40,27 @@ export async function POST(request) {
 
         const oldConfig = getConfig();
 
-        // Handle passwords
+        // Handle connection passwords (unchanged)
         const newConnections = connections.map(conn => {
             if (conn.password === '******') {
-                // Find original password
                 const oldConn = oldConfig.connections?.find(c => c.id === conn.id);
                 return { ...conn, password: oldConn?.password || '' };
             }
             return conn;
         });
 
+        // Handle Email Password
+        let newEmailConfig = email || {};
+        if (newEmailConfig.password === '******') {
+            newEmailConfig.password = oldConfig.email?.password || '';
+        }
+
         const newConfig = {
             connections: newConnections,
             activeConnectionId,
             title,
-            wanInterface
+            wanInterface,
+            email: newEmailConfig
         };
 
         saveConfig(newConfig);
