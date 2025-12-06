@@ -1,9 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Upload, Save, User, Key, Image as ImageIcon, Palette, Clock, Gauge } from 'lucide-react';
+import { Upload, Save, User, Key, Image as ImageIcon, Palette, Clock, Gauge, Globe } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function AppSettingsPage() {
+    const { language, setLanguage, t } = useLanguage();
+
     const [settings, setSettings] = useState({
         appName: 'Mikrotik Manager',
         logoUrl: '',
@@ -211,6 +214,41 @@ export default function AppSettingsPage() {
                 </div>
             )}
 
+            {/* Language Settings */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex items-center gap-3 mb-4">
+                    <Globe className="text-green-600" size={24} />
+                    <h2 className="text-xl font-semibold text-gray-800">{t('appSettings.language')}</h2>
+                </div>
+
+                <div className="space-y-3">
+                    <p className="text-sm text-gray-600 mb-3">{t('appSettings.selectLanguage')}</p>
+                    <div className="grid grid-cols-2 gap-4 max-w-md">
+                        <button
+                            type="button"
+                            onClick={() => setLanguage('id')}
+                            className={`p-4 rounded-lg border-2 flex items-center gap-3 transition-all ${language === 'id'
+                                    ? 'border-green-500 bg-green-50 text-green-700'
+                                    : 'border-gray-200 hover:border-gray-300'
+                                }`}
+                        >
+                            <span className="text-2xl">🇮🇩</span>
+                            <span className="font-medium">{t('appSettings.indonesian')}</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setLanguage('en')}
+                            className={`p-4 rounded-lg border-2 flex items-center gap-3 transition-all ${language === 'en'
+                                    ? 'border-green-500 bg-green-50 text-green-700'
+                                    : 'border-gray-200 hover:border-gray-300'
+                                }`}
+                        >
+                            <span className="text-2xl">🇺🇸</span>
+                            <span className="font-medium">{t('appSettings.english')}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
 
 
             {/* Display Preferences */}
