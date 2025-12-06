@@ -271,6 +271,7 @@ export default function BillingPage() {
     };
 
     const formatCurrency = (amount) => {
+        if (amount === undefined || amount === null) return 'Rp 0';
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount);
     };
 
@@ -419,54 +420,56 @@ ${invoiceLink}`;
         window.open(result.url, '_blank');
     };
 
-    const _unused_handleSendWhatsApp = (payment) => {
-        console.log('handleSendWhatsApp called for:', payment);
-
-        const customer = customersData[payment.username];
-        console.log('Customer lookup:', { username: payment.username, found: !!customer, data: customer });
-
-        if (!customer) {
-            alert(`Data pelanggan tidak ditemukan untuk username: ${payment.username}. Hubungi admin.`);
-            return;
-        }
-
-        if (!customer.phone) {
-            alert(`Nomor HP pelanggan belum diisi untuk ${customer.name || payment.username}. Silakan lengkapi data pelanggan terlebih dahulu.`);
-            return;
-        }
-
-        let phone = customer.phone.replace(/\D/g, '');
-        const formattedPhone = phone.startsWith('0') ? '62' + phone.slice(1) : phone;
-        console.log('Formatted phone:', formattedPhone);
-
-        const invoiceLink = `${window.location.origin}/invoice/${payment.id}`;
-        const periode = new Date(payment.date).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
-        const tanggal = new Date(payment.date).toLocaleDateString('id-ID');
-        const amount = formatCurrency(payment.amount);
-        const companyName = invoiceSettings.companyName || 'ISP';
-
-        // Thermal printer style receipt (Simple Text)
-        const message = `*INVOICE PEMBAYARAN*
-${companyName.toUpperCase()}
-================================
-No. Invoice : ${payment.id?.slice(0, 8) || '-'}
-Tanggal     : ${tanggal}
-Pelanggan   : ${customer.name}
-Periode     : ${periode}
---------------------------------
-*JUMLAH     : ${amount}*
-Status      : LUNAS
-================================
-Terima Kasih
-
-Link Invoice PDF:
-${invoiceLink}`;
-
-        const url = `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`;
-        console.log('Opening WhatsApp URL:', url);
-
-        window.open(url, '_blank');
-    };
+    /*
+        const _unused_handleSendWhatsApp = (payment) => {
+            console.log('handleSendWhatsApp called for:', payment);
+    
+            const customer = customersData[payment.username];
+            console.log('Customer lookup:', { username: payment.username, found: !!customer, data: customer });
+    
+            if (!customer) {
+                alert(`Data pelanggan tidak ditemukan untuk username: ${payment.username}. Hubungi admin.`);
+                return;
+            }
+    
+            if (!customer.phone) {
+                alert(`Nomor HP pelanggan belum diisi untuk ${customer.name || payment.username}. Silakan lengkapi data pelanggan terlebih dahulu.`);
+                return;
+            }
+    
+            let phone = customer.phone.replace(/\D/g, '');
+            const formattedPhone = phone.startsWith('0') ? '62' + phone.slice(1) : phone;
+            console.log('Formatted phone:', formattedPhone);
+    
+            const invoiceLink = `${window.location.origin}/invoice/${payment.id}`;
+            const periode = new Date(payment.date).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+            const tanggal = new Date(payment.date).toLocaleDateString('id-ID');
+            const amount = formatCurrency(payment.amount);
+            const companyName = invoiceSettings.companyName || 'ISP';
+    
+            // Thermal printer style receipt (Simple Text)
+            const message = `*INVOICE PEMBAYARAN*
+    ${companyName.toUpperCase()}
+    ================================
+    No. Invoice : ${payment.id?.slice(0, 8) || '-'}
+    Tanggal     : ${tanggal}
+    Pelanggan   : ${customer.name}
+    Periode     : ${periode}
+    --------------------------------
+    *JUMLAH     : ${amount}*
+    Status      : LUNAS
+    ================================
+    Terima Kasih
+    
+    Link Invoice PDF:
+    ${invoiceLink}`;
+    
+            const url = `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`;
+            console.log('Opening WhatsApp URL:', url);
+    
+            window.open(url, '_blank');
+        };
+    */
 
     return (
         <div>
