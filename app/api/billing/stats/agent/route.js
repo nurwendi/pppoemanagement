@@ -32,6 +32,90 @@ export async function GET(request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        // Check for yearly stats request
+        const type = searchParams.get('type');
+
+        if (type === 'yearly') {
+            if (!year) {
+                return NextResponse.json({ error: 'Year is required for yearly stats' }, { status: 400 });
+            }
+
+            // Initialize 12 months data
+            const yearlyData = Array.from({ length: 12 }, (_, i) => ({
+                name: new Date(0, i).toLocaleString('id-ID', { month: 'short' }),
+                monthIndex: i,
+                revenue: 0,
+                commission: 0,
+                paidCount: 0
+            }));
+
+            // Filter payments for the whole year
+            const yearlyPayments = paymentsData.filter(p => {
+                const pDate = new Date(p.date);
+                // Simple year check (assuming local/server time consistency or close enough for yearly agg)
+                return pDate.getFullYear() === parseInt(year);
+            });
+
+            // Calculate stats for each payment
+            yearlyPayments.forEach(p => {
+                const pDate = new Date(p.date);
+                const mIndex = pDate.getMonth();
+                const customer = getCustomer(p.username);
+
+                if (customer && p.status === 'completed') {
+                    const amount = parseFloat(p.amount) || 0;
+
+                    // Admin gets global stats
+                    if (currentUser.role === 'admin') {
+                        yearlyData[mIndex].revenue += amount;
+                        // Approx commission calculation could be complex if per-transaction logic needed
+                        // For graph, we might just sum revenue or sum known commissions if stored?
+                        // The 'commissions' are often not stored in payment object in old data, but calculated on fly.
+                        // Let's rely on calculation similar to monthly stats.
+
+                        // BUT: For graph, just Total Revenue is usually enough for Admin. 
+                        // Or Aggregate Commission? 
+                        // Let's calc commission sum.
+                        if (customer.agentId) {
+                            const agent = getUser(customer.agentId);
+                            if (agent) yearlyData[mIndex].commission += (amount * (agent.agentRate || 0)) / 100;
+                        }
+                    }
+                    // Partners/Agents get their specific stats
+                    else {
+                        const fullUser = getUser(currentUser.id) || currentUser;
+                        const isAgent = fullUser.isAgent || fullUser.role === 'agent' || fullUser.role === 'partner';
+                        const isTechnician = fullUser.isTechnician || fullUser.role === 'technician';
+
+                        let countedRevenue = false;
+
+                        if (isAgent && customer.agentId === currentUser.id) {
+                            yearlyData[mIndex].commission += (amount * (fullUser.agentRate || 0)) / 100;
+                            yearlyData[mIndex].revenue += amount;
+                            countedRevenue = true;
+                            yearlyData[mIndex].paidCount += 1;
+                        }
+
+                        if (isTechnician && customer.technicianId === currentUser.id) {
+                            yearlyData[mIndex].commission += (amount * (fullUser.technicianRate || 0)) / 100;
+                            if (!countedRevenue || customer.agentId !== customer.technicianId) {
+                                if (!countedRevenue) {
+                                    yearlyData[mIndex].revenue += amount;
+                                    yearlyData[mIndex].paidCount += 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            return NextResponse.json({
+                role: currentUser.role,
+                year: parseInt(year),
+                yearlyStats: yearlyData
+            });
+        }
+
         // Filter payments by date if provided (using Asia/Jakarta timezone)
         let filteredPayments = paymentsData;
         if (month && year) {
