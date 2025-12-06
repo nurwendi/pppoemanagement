@@ -95,7 +95,7 @@ export default function Sidebar() {
                 <Link href="/users" className={`p-2 rounded-lg ${pathname === '/users' ? 'text-blue-600 bg-blue-50 dark:bg-gray-700 dark:text-blue-400' : 'text-gray-500 hover:text-blue-600 dark:text-gray-400'}`}>
                     <Users size={24} />
                 </Link>
-                <Link href="/settings" className={`p-2 rounded-lg ${pathname === '/settings' ? 'text-blue-600 bg-blue-50 dark:bg-gray-700 dark:text-blue-400' : 'text-gray-500 hover:text-blue-600 dark:text-gray-400'}`}>
+                <Link href="/app-settings" className={`p-2 rounded-lg ${pathname === '/app-settings' ? 'text-blue-600 bg-blue-50 dark:bg-gray-700 dark:text-blue-400' : 'text-gray-500 hover:text-blue-600 dark:text-gray-400'}`}>
                     <Settings size={24} />
                 </Link>
             </div>
@@ -218,16 +218,7 @@ export default function Sidebar() {
                         </Link>
                     )}
 
-                    <button
-                        onClick={() => {
-                            handleLogout();
-                            closeSidebar();
-                        }}
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-red-50 hover:text-red-600 dark:hover:bg-gray-700 dark:hover:text-white transition-colors"
-                    >
-                        <LogOut size={20} />
-                        <span>Logout</span>
-                    </button>
+
 
 
                 </div>

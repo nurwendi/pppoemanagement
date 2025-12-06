@@ -1,11 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Upload, Save, User, Key, Image as ImageIcon, Palette, Clock, Gauge, Globe } from 'lucide-react';
+import { Upload, Save, User, Key, Image as ImageIcon, Palette, Clock, Gauge, Globe, LogOut } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function AppSettingsPage() {
     const { language, setLanguage, t } = useLanguage();
+
+    const { language, setLanguage, t } = useLanguage();
+    const router = useRouter();
 
     const [settings, setSettings] = useState({
         appName: 'Mikrotik Manager',
@@ -203,6 +207,11 @@ export default function AppSettingsPage() {
         }
     };
 
+    const handleLogout = async () => {
+        await fetch('/api/auth/logout', { method: 'POST' });
+        router.push('/login');
+    };
+
     return (
         <div className="w-full space-y-6">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Application Settings</h1>
@@ -213,6 +222,25 @@ export default function AppSettingsPage() {
                     {message.text}
                 </div>
             )}
+
+            {/* Logout Section */}
+            <div className="bg-red-50 rounded-lg shadow-sm p-6 border border-red-100 mb-6">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <LogOut className="text-red-600" size={24} />
+                        <div>
+                            <h2 className="text-xl font-semibold text-red-800">Sign Out</h2>
+                            <p className="text-sm text-red-600">End your current session</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleLogout}
+                        className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-sm font-medium"
+                    >
+                        Logout
+                    </button>
+                </div>
+            </div>
 
             {/* Language Settings */}
             <div className="bg-white rounded-lg shadow-md p-6">
@@ -228,8 +256,8 @@ export default function AppSettingsPage() {
                             type="button"
                             onClick={() => setLanguage('id')}
                             className={`p-4 rounded-lg border-2 flex items-center gap-3 transition-all ${language === 'id'
-                                    ? 'border-green-500 bg-green-50 text-green-700'
-                                    : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-green-500 bg-green-50 text-green-700'
+                                : 'border-gray-200 hover:border-gray-300'
                                 }`}
                         >
                             <span className="text-2xl">🇮🇩</span>
@@ -239,8 +267,8 @@ export default function AppSettingsPage() {
                             type="button"
                             onClick={() => setLanguage('en')}
                             className={`p-4 rounded-lg border-2 flex items-center gap-3 transition-all ${language === 'en'
-                                    ? 'border-green-500 bg-green-50 text-green-700'
-                                    : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-green-500 bg-green-50 text-green-700'
+                                : 'border-gray-200 hover:border-gray-300'
                                 }`}
                         >
                             <span className="text-2xl">🇺🇸</span>
