@@ -106,12 +106,12 @@ export default function Sidebar() {
                 w-full lg:w-64
                 left-0 lg:top-0
                 lg:border-r lg:border-gray-200 lg:dark:border-gray-700
-                ${isOpen ? 'top-0' : 'top-full'}
-                lg:top-0 lg:translate-y-0
+                ${isOpen ? 'top-0 opacity-100' : 'top-full opacity-0'}
+                lg:top-0 lg:translate-y-0 lg:opacity-100
                 glass-mode:bg-white/80 glass-mode:dark:bg-gray-900/80 glass-mode:backdrop-blur-md glass-mode:border-r glass-mode:border-gray-200/50 glass-mode:dark:border-white/10
                 print:hidden
             `}
-                style={{ transition: 'top 0.4s cubic-bezier(0.4, 0, 0.2, 1)' }}>
+                style={{ transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)' }}>
                 <div className="flex flex-col min-h-full lg:items-start items-center">
                     {/* Logo Section */}
                     <div className="mb-8 mt-2 lg:text-left text-center w-full lg:w-auto">
@@ -229,15 +229,7 @@ export default function Sidebar() {
                         <span>Logout</span>
                     </button>
 
-                    {/* Mobile Close Button - Bottom */}
-                    <div className="lg:hidden flex justify-center mt-6 mb-4 w-full">
-                        <button
-                            onClick={closeSidebar}
-                            className="p-4 text-white bg-red-500 hover:bg-red-600 rounded-full shadow-lg transition-all duration-300 hover:scale-110"
-                        >
-                            <X size={28} />
-                        </button>
-                    </div>
+
                 </div>
             </div>
         </>

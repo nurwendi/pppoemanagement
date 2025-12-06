@@ -8,7 +8,7 @@ const translations = { id, en };
 
 const LanguageContext = createContext();
 
-export function LanguageProvider({ children, initialLanguage = 'id' }) {
+export function LanguageProvider({ children, initialLanguage = 'en' }) {
     const [language, setLanguage] = useState(initialLanguage);
     const [isLoaded, setIsLoaded] = useState(false);
 
