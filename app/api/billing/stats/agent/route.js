@@ -183,6 +183,15 @@ export async function GET(request) {
                     revenue: grandTotalRevenue,
                     commission: grandTotalCommission,
                     netRevenue: grandTotalRevenue - grandTotalCommission
+                },
+                // Debug info
+                _debug: {
+                    filteredPaymentsCount: filteredPayments.length,
+                    customersCount: Object.keys(customersData).length,
+                    usersCount: usersData.length,
+                    customers: customersData,
+                    users: usersData.map(u => ({ id: u.id, username: u.username, role: u.role, agentRate: u.agentRate })),
+                    payments: filteredPayments.map(p => ({ username: p.username, amount: p.amount, status: p.status }))
                 }
             });
 
