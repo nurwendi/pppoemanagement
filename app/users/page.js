@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Users as UsersIcon, Shield, Globe, User, MapPin, Phone, Building, Search, Wifi, WifiOff, ArrowUpDown, Server, RefreshCw, CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Users as UsersIcon, Shield, Globe, User, MapPin, Phone, Building, Search, Wifi, WifiOff, ArrowUpDown, Server, RefreshCw, CheckCircle, XCircle, Clock, AlertTriangle, Mail } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export default function UsersPage() {
@@ -31,6 +31,7 @@ export default function UsersPage() {
         customerName: '',
         customerAddress: '',
         customerPhone: '',
+        customerEmail: '',
         agentId: '',
         technicianId: ''
     });
@@ -365,6 +366,7 @@ export default function UsersPage() {
                         name: formData.customerName,
                         address: formData.customerAddress,
                         phone: formData.customerPhone,
+                        email: formData.customerEmail,
                         agentId: formData.agentId,
                         technicianId: formData.technicianId
                     })
@@ -406,6 +408,7 @@ export default function UsersPage() {
                 customerName: customerData.name || '',
                 customerAddress: customerData.address || '',
                 customerPhone: customerData.phone || '',
+                customerEmail: customerData.email || '',
                 agentId: customerData.agentId || '',
                 technicianId: customerData.technicianId || ''
             });
@@ -420,6 +423,7 @@ export default function UsersPage() {
                 customerName: '',
                 customerAddress: '',
                 customerPhone: '',
+                customerEmail: '',
                 agentId: '',
                 technicianId: ''
             });
@@ -976,6 +980,18 @@ export default function UsersPage() {
                                                 onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                                 placeholder="08xx..."
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                                                <Mail size={16} /> Email Address
+                                            </label>
+                                            <input
+                                                type="email"
+                                                value={formData.customerEmail}
+                                                onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                placeholder="email@example.com"
                                             />
                                         </div>
                                         <div className="md:col-span-2">

@@ -59,7 +59,7 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { username, name, address, phone, customerNumber } = body;
+        const { username, name, address, phone, email, customerNumber } = body;
 
         console.log(`[API] Updating customer data for username: ${username}`, body);
 
@@ -112,6 +112,7 @@ export async function POST(request) {
             name: name !== undefined ? name : (existingData.name || ''),
             address: address !== undefined ? address : (existingData.address || ''),
             phone: phone !== undefined ? phone : (existingData.phone || ''),
+            email: email !== undefined ? email : (existingData.email || ''),
             customerNumber: finalCustomerNumber,
             agentId: agentId !== undefined ? agentId : (existingData.agentId || ''),
             technicianId: technicianId !== undefined ? technicianId : (existingData.technicianId || ''),
