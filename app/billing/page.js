@@ -876,7 +876,7 @@ ${invoiceLink}`;
                                                 setLastRecordedPayment(null);
                                                 setShowModal(false);
                                             }}
-                                            className="w-full px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors"
+                                            className="w-full px-4 py-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium transition-colors"
                                         >
                                             Tutup
                                         </button>
@@ -1081,7 +1081,7 @@ ${invoiceLink}`;
                             </div>
                             <button
                                 onClick={() => setShowMonthModal(false)}
-                                className="w-full mt-4 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                className="w-full mt-4 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             >
                                 Cancel
                             </button>

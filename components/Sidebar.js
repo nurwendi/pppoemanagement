@@ -78,15 +78,27 @@ export default function Sidebar() {
 
     return (
         <>
-            {/* Hamburger Menu Button - Mobile Only - Bottom Center */}
-            {!isOpen && (
+            {/* Mobile Bottom Navigation */}
+            <div className="lg:hidden fixed bottom-0 left-0 w-full bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-50 flex justify-around items-center py-3 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                <Link href="/" className={`p-2 rounded-lg ${pathname === '/' ? 'text-blue-600 bg-blue-50 dark:bg-gray-700 dark:text-blue-400' : 'text-gray-500 hover:text-blue-600 dark:text-gray-400'}`}>
+                    <Home size={24} />
+                </Link>
+                <Link href="/billing" className={`p-2 rounded-lg ${pathname === '/billing' ? 'text-blue-600 bg-blue-50 dark:bg-gray-700 dark:text-blue-400' : 'text-gray-500 hover:text-blue-600 dark:text-gray-400'}`}>
+                    <CreditCard size={24} />
+                </Link>
                 <button
                     onClick={toggleSidebar}
-                    className="lg:hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 p-4 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300 hover:scale-110 print:hidden"
+                    className="p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transform hover:scale-105 transition-all -mt-8 border-4 border-white dark:border-gray-900"
                 >
-                    <Menu size={28} />
+                    <Menu size={24} />
                 </button>
-            )}
+                <Link href="/users" className={`p-2 rounded-lg ${pathname === '/users' ? 'text-blue-600 bg-blue-50 dark:bg-gray-700 dark:text-blue-400' : 'text-gray-500 hover:text-blue-600 dark:text-gray-400'}`}>
+                    <Users size={24} />
+                </Link>
+                <Link href="/settings" className={`p-2 rounded-lg ${pathname === '/settings' ? 'text-blue-600 bg-blue-50 dark:bg-gray-700 dark:text-blue-400' : 'text-gray-500 hover:text-blue-600 dark:text-gray-400'}`}>
+                    <Settings size={24} />
+                </Link>
+            </div>
 
             {/* Sidebar - Full Screen on Mobile with Bottom-Up Animation */}
             <div className={`

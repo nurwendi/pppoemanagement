@@ -186,7 +186,7 @@ export default function SettingsPage() {
                                         {settings.activeConnectionId !== conn.id && (
                                             <button
                                                 onClick={() => handleConnect(conn.id)}
-                                                className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
+                                                className="px-3 py-1 text-sm bg-green-100 hover:bg-green-200 text-green-700 rounded-md transition-colors"
                                             >
                                                 Connect
                                             </button>
@@ -325,7 +325,7 @@ export default function SettingsPage() {
                                 <button
                                     type="button"
                                     onClick={() => setIsEditing(false)}
-                                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
+                                    className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-md"
                                 >
                                     Cancel
                                 </button>
