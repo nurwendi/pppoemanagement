@@ -88,9 +88,9 @@ export default function Sidebar() {
                 </Link>
                 <button
                     onClick={toggleSidebar}
-                    className="p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transform hover:scale-105 transition-all -mt-8 border-4 border-white dark:border-gray-900"
+                    className={`p-3 rounded-full shadow-lg transform hover:scale-105 transition-all duration-300 -mt-8 border-4 border-white dark:border-gray-900 ${isOpen ? 'bg-red-600 hover:bg-red-700 rotate-180' : 'bg-blue-600 hover:bg-blue-700 rotate-0'}`}
                 >
-                    <Menu size={24} />
+                    {isOpen ? <X size={24} className="text-white" /> : <Menu size={24} className="text-white" />}
                 </button>
                 <Link href="/users" className={`p-2 rounded-lg ${pathname === '/users' ? 'text-blue-600 bg-blue-50 dark:bg-gray-700 dark:text-blue-400' : 'text-gray-500 hover:text-blue-600 dark:text-gray-400'}`}>
                     <Users size={24} />
