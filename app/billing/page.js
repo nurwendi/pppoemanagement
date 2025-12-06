@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { DollarSign, CreditCard, Calendar, Plus, Search, FileText, Settings, Printer, ArrowUpDown, UserX, MessageCircle, X } from 'lucide-react';
+import { DollarSign, CreditCard, Calendar, Plus, Search, FileText, Settings, Printer, ArrowUpDown, UserX, MessageCircle, X, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
@@ -44,6 +44,10 @@ export default function BillingPage() {
     const [isNextMonthIncluded, setIsNextMonthIncluded] = useState(false);
     const [origin, setOrigin] = useState('');
 
+    // Searchable dropdown state
+    const [userSearchTerm, setUserSearchTerm] = useState('');
+    const [showUserDropdown, setShowUserDropdown] = useState(false);
+
     useEffect(() => {
         if (typeof window !== 'undefined') {
             setOrigin(window.location.origin);
@@ -51,6 +55,15 @@ export default function BillingPage() {
     }, []);
 
 
+
+    useEffect(() => {
+        if (showModal && formData.username) {
+            setUserSearchTerm(formData.username);
+        } else if (!showModal) {
+            // Optional: clear search term on close if desired, or keep it.
+            // setUserSearchTerm(''); 
+        }
+    }, [showModal, formData.username]);
 
     useEffect(() => {
         fetchData();
@@ -377,6 +390,31 @@ export default function BillingPage() {
         });
 
         return sorted;
+    };
+
+    const handleDeletePayment = async (id) => {
+        if (!confirm('Apakah Anda yakin ingin menghapus invoice ini secara permanen?')) return;
+
+        try {
+            const res = await fetch('/api/billing/payments', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: [id] })
+            });
+
+            if (res.ok) {
+                // Remove locally to update UI faster
+                setPayments(prev => prev.filter(p => p.id !== id));
+                // Reload full data
+                fetchData();
+            } else {
+                const data = await res.json();
+                alert('Gagal menghapus: ' + (data.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Delete failed', error);
+            alert('Error deleting invoice');
+        }
     };
 
     const getWhatsAppFormattedUrl = (payment) => {
@@ -743,7 +781,7 @@ ${invoiceLink}`;
                                             <ArrowUpDown size={14} />
                                         </div>
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
+
                                     <th
                                         onClick={() => sortData('status')}
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
@@ -797,6 +835,15 @@ ${invoiceLink}`;
                                                         <MessageCircle size={18} />
                                                     </button>
                                                 )}
+                                                {userRole === 'admin' && (
+                                                    <button
+                                                        onClick={() => handleDeletePayment(payment.id)}
+                                                        className="text-red-600 hover:text-red-900 ml-3"
+                                                        title="Hapus Invoice"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                 <div>
@@ -809,9 +856,7 @@ ${invoiceLink}`;
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
                                                 {formatCurrency(payment.amount)}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">
-                                                {payment.method}
-                                            </td>
+
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${payment.status === 'completed' ? 'bg-green-100 text-green-800' :
                                                     payment.status === 'postponed' ? 'bg-orange-100 text-orange-800' :
@@ -898,42 +943,78 @@ ${invoiceLink}`;
                                     )}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">User</label>
-                                        <select
-                                            value={formData.username}
-                                            onChange={(e) => {
-                                                const selectedUser = users.find(u => u.name === e.target.value);
-                                                let amount = formData.amount;
-
-                                                if (selectedUser && selectedUser.profile) {
-                                                    const userProfile = profiles.find(p => p.name === selectedUser.profile);
-                                                    // Parse price from comment (format: "price:150000")
-                                                    if (userProfile && userProfile.comment && userProfile.comment.includes('price:')) {
-                                                        const match = userProfile.comment.match(/price:(\d+)/);
-                                                        if (match) {
-                                                            amount = match[1];
-                                                        }
-                                                    } else if (userProfile && userProfile.price) {
-                                                        // Fallback to direct price property if it exists
-                                                        amount = userProfile.price;
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                value={userSearchTerm}
+                                                onChange={(e) => {
+                                                    setUserSearchTerm(e.target.value);
+                                                    setShowUserDropdown(true);
+                                                    setFormData({ ...formData, username: '' }); // Reset username on type until selected? Or keep?
+                                                }}
+                                                onFocus={() => {
+                                                    setShowUserDropdown(true);
+                                                    // Initialize search term if empty but formData has value?
+                                                    if (!userSearchTerm && formData.username) {
+                                                        setUserSearchTerm(formData.username);
                                                     }
-                                                }
+                                                }}
+                                                placeholder="Search user..."
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                            />
+                                            {showUserDropdown && (
+                                                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                                                    {users.filter(u => u.name.toLowerCase().includes(userSearchTerm.toLowerCase())).length === 0 ? (
+                                                        <div className="px-4 py-2 text-gray-500 text-sm">No users found</div>
+                                                    ) : (
+                                                        users.filter(u => u.name.toLowerCase().includes(userSearchTerm.toLowerCase())).map(user => (
+                                                            <div
+                                                                key={user['.id']}
+                                                                className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-gray-900"
+                                                                onClick={() => {
+                                                                    // Selection Logic
+                                                                    const selectedUser = user;
+                                                                    let amount = formData.amount;
 
-                                                setBaseAmount(amount);
-                                                setIsNextMonthIncluded(false);
-                                                setFormData({
-                                                    ...formData,
-                                                    username: e.target.value,
-                                                    amount: amount,
-                                                    notes: ''
-                                                });
-                                            }}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
-                                        >
-                                            <option value="">Select User</option>
-                                            {users.map(user => (
-                                                <option key={user['.id']} value={user.name}>{user.name}</option>
-                                            ))}
-                                        </select>
+                                                                    if (selectedUser && selectedUser.profile) {
+                                                                        const userProfile = profiles.find(p => p.name === selectedUser.profile);
+                                                                        if (userProfile && userProfile.comment && userProfile.comment.includes('price:')) {
+                                                                            const match = userProfile.comment.match(/price:(\d+)/);
+                                                                            if (match) {
+                                                                                amount = match[1];
+                                                                            }
+                                                                        } else if (userProfile && userProfile.price) {
+                                                                            amount = userProfile.price;
+                                                                        }
+                                                                    }
+
+                                                                    setBaseAmount(amount);
+                                                                    setIsNextMonthIncluded(false);
+                                                                    setFormData({
+                                                                        ...formData,
+                                                                        username: selectedUser.name,
+                                                                        amount: amount,
+                                                                        notes: ''
+                                                                    });
+                                                                    setUserSearchTerm(selectedUser.name);
+                                                                    setShowUserDropdown(false);
+                                                                }}
+                                                            >
+                                                                <div className="font-medium">{user.name}</div>
+                                                                {user.profile && <div className="text-xs text-gray-500">{user.profile}</div>}
+                                                            </div>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                        {/* Overlay to close dropdown when clicking outside */}
+                                        {showUserDropdown && (
+                                            <div
+                                                className="fixed inset-0 z-0"
+                                                onClick={() => setShowUserDropdown(false)}
+                                            ></div>
+                                        )}
                                     </div>
 
                                     {/* Advance Payment Checkbox */}
@@ -992,18 +1073,7 @@ ${invoiceLink}`;
                                             placeholder="150000"
                                         />
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Method</label>
-                                        <select
-                                            value={formData.method}
-                                            onChange={(e) => setFormData({ ...formData, method: e.target.value })}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
-                                        >
-                                            <option value="cash">Cash</option>
-                                            <option value="transfer">Transfer</option>
-                                            <option value="qris">QRIS</option>
-                                        </select>
-                                    </div>
+
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                                         <textarea
