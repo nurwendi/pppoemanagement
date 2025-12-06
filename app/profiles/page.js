@@ -54,7 +54,9 @@ export default function ProfilesPage() {
             const res = await fetch('/api/pppoe/profiles');
             const data = await res.json();
             if (Array.isArray(data)) {
-                setProfiles(data);
+                // Filter out default profiles
+                const filtered = data.filter(p => p.name !== 'default' && p.name !== 'default-encryption');
+                setProfiles(filtered);
             }
         } catch (error) {
             console.error('Failed to fetch profiles', error);
